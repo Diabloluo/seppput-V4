@@ -2,6 +2,14 @@
 import json
 import requests
 
+# 标准 Serverless Response 格式封装
+def response(status: int, body: dict) -> dict:
+    return {
+        "statusCode": status,
+        "headers": {"Content-Type": "application/json"},
+        "body": json.dumps(body)
+    }
+
 # 标准 Serverless 入口函数
 async def handler(request):
     if request.method == "POST":
@@ -10,18 +18,18 @@ async def handler(request):
             data = json.loads(body)
             symbol = data.get("symbol", "").upper()
             if not symbol:
-                return {"statusCode": 400, "body": json.dumps({"error": "股票代码不能为空"})}
+                return response(400, {"error": "股票代码不能为空"})
 
             price = get_real_time_price(symbol)
             if price is None:
-                return {"statusCode": 500, "body": json.dumps({"recommendation": "无法获取实时股价，请检查股票代码或稍后重试。"})}
+                return response(500, {"recommendation": "无法获取实时股价，请检查股票代码或稍后重试。"})
 
             recommendation = recommend_sell_put(symbol, price)
-            return {"statusCode": 200, "body": json.dumps({"recommendation": recommendation})}
+            return response(200, {"recommendation": recommendation})
         except Exception as e:
-            return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
+            return response(500, {"error": str(e)})
 
-    return {"statusCode": 200, "body": json.dumps({"message": "Sell Put 推荐小工具 Serverless API 正常运行 ✅"})}
+    return response(200, {"message": "Sell Put 推荐小工具 Serverless API 正常运行 ✅"})
 
 # Sell Put 推荐逻辑（标普500、道指30支持版）
 def recommend_sell_put(symbol: str, current_price: float) -> str:
