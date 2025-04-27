@@ -11,10 +11,10 @@ def response(status: int, body: dict) -> dict:
     }
 
 # 标准 Serverless 入口函数
-async def handler(request):
+def handler(request):
     if request.method == "POST":
         try:
-            body = await request.body()
+            body = request.body
             data = json.loads(body)
             symbol = data.get("symbol", "").upper()
             if not symbol:
